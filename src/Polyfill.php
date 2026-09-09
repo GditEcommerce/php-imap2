@@ -23,7 +23,7 @@ class Polyfill
 
     public static function mimeHeaderDecode($string)
     {
-        return $string;
+        return [(object) ['charset' => "UTF-8", 'text' => self::utf8($string)]];
     }
 
     public static function mutf7ToUtf8($string)
@@ -102,7 +102,14 @@ class Polyfill
 
     public static function utf8($string)
     {
-        return $string;
+        if (function_exists('iconv_mime_decode')) {
+            $decoded = iconv_mime_decode($string, ICONV_MIME_DECODE_CONTINUE_ON_ERROR, "UTF-8");
+            if ($decoded !== false) {
+                return $decoded;
+            }
+        }
+
+        return mb_decode_mimeheader($string);
     }
 
     public static function mailCompose($envelope, $bodies)
